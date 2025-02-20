@@ -12,7 +12,7 @@
 
   let Animevost = {
     init: function () {
-      console.log("Animevost Plugin: Инициализация");
+      console.log("Animevost Plugin: Инициализация начата");
       try {
         if (typeof Lampa === "undefined") {
           console.error("Animevost Plugin: Lampa API недоступен");
@@ -60,11 +60,28 @@
     },
   };
 
+  // Функция для ожидания загрузки Lampa API
+  function waitForLampa(callback) {
+    if (typeof Lampa !== "undefined" && typeof Lampa.Plugin !== "undefined") {
+      console.log("Animevost Plugin: Lampa API готов");
+      callback();
+    } else {
+      console.log("Animevost Plugin: Ожидание Lampa API...");
+      setTimeout(() => waitForLampa(callback), 500); // Проверяем каждые 500 мс
+    }
+  }
+
+  // Попытка регистрации с ожиданием
   try {
-    console.log("Animevost Plugin: Регистрация плагина");
-    Lampa.Plugin.register("animevost", Animevost);
-    Animevost.init();
+    console.log("Animevost Plugin: Попытка регистрации");
+    waitForLampa(function () {
+      Lampa.Plugin.register("animevost", Animevost);
+      Animevost.init();
+    });
   } catch (e) {
     console.error("Animevost Plugin: Ошибка при регистрации:", e.message);
+    // Альтернативный запуск без Lampa.Plugin.register
+    console.log("Animevost Plugin: Пробуем прямую инициализацию");
+    Animevost.init();
   }
 })();
