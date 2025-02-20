@@ -13,9 +13,24 @@
 
     init: function () {
       console.log("Animevost Plugin инициализирован");
-      Lampa.Menu.add(plugin.name, {
+      // Добавляем в меню
+      Lampa.Menu.add("animevost_menu", {
         title: plugin.name,
         icon: plugin.icon,
+        action: () => {
+          Lampa.Activity.push({
+            url: "",
+            title: "Animevost - Аниме",
+            component: "main",
+            page: 1,
+            source: "animevost",
+          });
+        },
+      });
+      // Регистрируем как источник (альтернативный подход)
+      Lampa.Storage.set("source_animevost", {
+        title: "Animevost",
+        id: "animevost",
         action: () => {
           Lampa.Activity.push({
             url: "",
