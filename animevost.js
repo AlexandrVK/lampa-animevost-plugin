@@ -1,33 +1,73 @@
 (function () {
   "use strict";
 
-  console.log("Animevost Plugin: Начало загрузки");
+  if (typeof Lampa !== "undefined") {
+    console.log("Animevost Plugin: Начало загрузки");
 
-  // Минимальный объект плагина
-  window.animevost_plugin = {
-    get: function (params, oncomplite, onerror) {
-      console.log("Animevost Plugin: Запрос каталога (пустой)");
-      oncomplite({ list: [], next: "" }); // Пустой каталог
-    },
+    window.animevost_plugin = {
+      get: function (params, oncomplite, onerror) {
+        console.log(
+          "Animevost Plugin: Запрос каталога (оригинальный online_mod)"
+        );
+        Lampa.Network.http(
+          "https://nb557.github.io/plugins/online_mod.json",
+          function (result) {
+            var items = result.data || [];
+            oncomplite({
+              list: items.map(function (item) {
+                return {
+                  title: item.title || "Нет названия",
+                  url: item.url || "",
+                  img: item.img || "",
+                  source: "animevost",
+                };
+              }),
+              next: "",
+            });
+          },
+          onerror
+        );
+      },
 
-    stream: function (params, oncomplite, onerror) {
-      console.log("Animevost Plugin: Запрос видео (пустой)");
-      onerror("Контент недоступен"); // Пустой поток
-    },
-  };
+      stream: function (params, oncomplite, onerror) {
+        console.log("Animevost Plugin: Запрос видео (оригинальный online_mod)");
+        Lampa.Network.http(
+          params.url,
+          function (result) {
+            var streams = (result.data && result.data.streams) || [];
+            if (streams.length > 0) {
+              var quality = {};
+              streams.forEach(function (stream, index) {
+                quality["Качество " + (index + 1)] = stream.url;
+              });
+              oncomplite({
+                url: streams[0].url,
+                quality: quality,
+              });
+            } else {
+              onerror("Видео не найдено");
+            }
+          },
+          onerror
+        );
+      },
+    };
 
-  // Регистрация компонента, как в online_mod.js
-  if (typeof Lampa !== "undefined" && Lampa.Component && Lampa.Component.add) {
-    console.log("Animevost Plugin: Регистрация компонента");
-    Lampa.Component.add("online_animevost", {
-      name: "Animevost",
-      source: "animevost",
-      get: window.animevost_plugin.get,
-      stream: window.animevost_plugin.stream,
-    });
-    console.log("Animevost Plugin: Компонент зарегистрирован");
+    // Регистрация компонента
+    if (Lampa.Component && Lampa.Component.add) {
+      console.log("Animevost Plugin: Регистрация компонента");
+      Lampa.Component.add("online_animevost", {
+        name: "Animevost",
+        source: "animevost",
+        get: window.animevost_plugin.get,
+        stream: window.animevost_plugin.stream,
+      });
+      console.log("Animevost Plugin: Компонент зарегистрирован");
+    } else {
+      console.error("Animevost Plugin: Lampa.Component недоступен");
+    }
 
-    // Пробуем добавить через Lampa.Sources, как в online_mod.js
+    // Добавление источника через Lampa.Sources
     if (Lampa.Sources && Lampa.Sources.add) {
       console.log("Animevost Plugin: Добавление источника через Lampa.Sources");
       Lampa.Sources.add({
@@ -85,9 +125,7 @@
         console.log("Animevost Plugin: Lampa.Storage недоступен");
       }
     }
-  } else {
-    console.error("Animevost Plugin: Lampa.Component недоступен");
-  }
 
-  console.log("Animevost Plugin: Инициализация завершена");
+    console.log("Animevost Plugin: Инициализация завершена");
+  }
 })();
