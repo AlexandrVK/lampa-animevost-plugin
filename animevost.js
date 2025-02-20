@@ -112,56 +112,25 @@
     },
   };
 
-  // Регистрация источника с проверкой
-  console.log("Animevost Plugin: Попытка добавить источник");
-  if (typeof Lampa !== "undefined") {
-    if (Lampa.Sources && Lampa.Sources.add) {
-      Lampa.Sources.add({
-        id: "animevost",
-        title: "Animevost",
-        icon: "https://animevost.org/favicon.ico",
-        action: function () {
-          console.log("Animevost Plugin: Открытие каталога");
-          Lampa.Activity.push({
-            url: "",
-            title: "Animevost - Аниме",
-            component: "main",
-            page: 1,
-            source: "animevost",
-          });
-        },
-      });
-      console.log(
-        "Animevost Plugin: Источник успешно добавлен через Lampa.Sources"
-      );
-    } else {
-      console.error("Animevost Plugin: Lampa.Sources недоступен");
-      // Альтернативный способ через Lampa.Params (иногда используется в Lampa)
-      if (Lampa.Params && Lampa.Params.option) {
-        Lampa.Params.option("sources", {
-          id: "animevost",
-          title: "Animevost",
-          icon: "https://animevost.org/favicon.ico",
-          action: function () {
-            console.log("Animevost Plugin: Открытие каталога через Params");
-            Lampa.Activity.push({
-              url: "",
-              title: "Animevost - Аниме",
-              component: "main",
-              page: 1,
-              source: "animevost",
-            });
-          },
-        });
-        console.log("Animevost Plugin: Источник добавлен через Lampa.Params");
-      } else {
-        console.error(
-          "Animevost Plugin: Нет подходящего API для добавления источника"
-        );
-      }
-    }
+  // Регистрация источника через Lampa.Component
+  console.log("Animevost Plugin: Регистрация компонента");
+  Lampa.Component.add("online_animevost", {
+    name: "Animevost",
+    source: "animevost",
+    get: window.animevost_plugin.get,
+    stream: window.animevost_plugin.stream,
+  });
+
+  // Добавление в список источников через Lampa.Online
+  if (Lampa.Online) {
+    console.log("Animevost Plugin: Добавление через Lampa.Online");
+    Lampa.Online.add({
+      id: "animevost",
+      title: "Animevost",
+      icon: "https://animevost.org/favicon.ico",
+    });
   } else {
-    console.error("Animevost Plugin: Lampa не определен");
+    console.error("Animevost Plugin: Lampa.Online недоступен");
   }
 
   console.log("Animevost Plugin: Инициализация завершена");
