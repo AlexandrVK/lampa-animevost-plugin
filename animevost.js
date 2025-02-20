@@ -16,7 +16,7 @@
     },
   };
 
-  // Регистрация компонента
+  // Регистрация компонента, как в prestige.js
   if (typeof Lampa !== "undefined" && Lampa.Component && Lampa.Component.add) {
     console.log("Animevost Plugin: Регистрация компонента");
     Lampa.Component.add("online_animevost", {
@@ -26,6 +26,39 @@
       stream: window.animevost_plugin.stream,
     });
     console.log("Animevost Plugin: Компонент зарегистрирован");
+
+    // Пробуем добавить в список источников через StorageWorker или аналог
+    if (Lampa.Storage && Lampa.Storage.set) {
+      console.log("Animevost Plugin: Добавление источника через Lampa.Storage");
+      Lampa.Storage.set("online_choice_animevost", {
+        id: "animevost",
+        title: "Animevost",
+        icon: "https://animevost.org/favicon.ico",
+        action: function () {
+          console.log("Animevost Plugin: Открытие каталога");
+          Lampa.Activity.push({
+            url: "",
+            title: "Animevost - Аниме",
+            component: "online_animevost",
+            source: "animevost",
+          });
+        },
+      });
+
+      // Обновляем список источников
+      if (Lampa.Listener && Lampa.Listener.send) {
+        Lampa.Listener.send("sources_update");
+        console.log("Animevost Plugin: Отправлено событие sources_update");
+      }
+      if (Lampa.Sources && Lampa.Sources.update) {
+        Lampa.Sources.update();
+        console.log(
+          "Animevost Plugin: Список источников обновлен через Lampa.Sources.update"
+        );
+      }
+    } else {
+      console.log("Animevost Plugin: Lampa.Storage недоступен");
+    }
   } else {
     console.error("Animevost Plugin: Lampa.Component недоступен");
   }
