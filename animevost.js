@@ -128,7 +128,7 @@
       });
       console.log("Animevost Plugin: Компонент зарегистрирован");
 
-      // Пробуем добавить через Lampa.Storage как альтернативу
+      // Добавляем через Lampa.Storage
       if (Lampa.Storage && Lampa.Storage.set) {
         Lampa.Storage.set("LAMPA_SOURCE_animevost", {
           id: "animevost",
@@ -145,11 +145,33 @@
           },
         });
         console.log("Animevost Plugin: Источник добавлен через Lampa.Storage");
+
+        // Обновляем интерфейс
+        if (Lampa.Listener && Lampa.Listener.send) {
+          Lampa.Listener.send("sources_update");
+          console.log("Animevost Plugin: Отправлено событие sources_update");
+        }
       } else {
         console.log("Animevost Plugin: Lampa.Storage недоступен");
       }
 
-      // Проверяем Lampa.Online как запасной вариант
+      // Пробуем через Lampa.Settings или Lampa.Params
+      if (Lampa.Params && Lampa.Params.option) {
+        Lampa.Params.option("source", {
+          id: "animevost",
+          title: "Animevost",
+          icon: "https://animevost.org/favicon.ico",
+        });
+        console.log("Animevost Plugin: Источник добавлен через Lampa.Params");
+      } else if (Lampa.Settings && Lampa.Settings.addSource) {
+        Lampa.Settings.addSource({
+          id: "animevost",
+          title: "Animevost",
+          icon: "https://animevost.org/favicon.ico",
+        });
+        console.log("Animevost Plugin: Источник добавлен через Lampa.Settings");
+      }
+
       if (Lampa.Online && Lampa.Online.add) {
         Lampa.Online.add({
           id: "animevost",
@@ -166,7 +188,7 @@
     console.log("Animevost Plugin: Инициализация завершена");
   }
 
-  // Подписываемся на событие 'app' и регистрируем только на 'ready'
+  // Подписываемся на событие 'app' и регистрируем на 'ready'
   if (typeof Lampa !== "undefined" && Lampa.Listener) {
     console.log("Animevost Plugin: Подписка на событие app");
     Lampa.Listener.follow("app", function (e) {
