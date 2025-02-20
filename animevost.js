@@ -112,26 +112,43 @@
     },
   };
 
-  // Регистрация источника через Lampa.Component
-  console.log("Animevost Plugin: Регистрация компонента");
-  Lampa.Component.add("online_animevost", {
-    name: "Animevost",
-    source: "animevost",
-    get: window.animevost_plugin.get,
-    stream: window.animevost_plugin.stream,
-  });
+  // Функция для регистрации источника
+  function registerAnimevost() {
+    console.log("Animevost Plugin: Регистрация компонента");
+    if (
+      typeof Lampa !== "undefined" &&
+      Lampa.Component &&
+      Lampa.Component.add
+    ) {
+      Lampa.Component.add("online_animevost", {
+        name: "Animevost",
+        source: "animevost",
+        get: window.animevost_plugin.get,
+        stream: window.animevost_plugin.stream,
+      });
+      console.log("Animevost Plugin: Компонент зарегистрирован");
 
-  // Добавление в список источников через Lampa.Online
-  if (Lampa.Online) {
-    console.log("Animevost Plugin: Добавление через Lampa.Online");
-    Lampa.Online.add({
-      id: "animevost",
-      title: "Animevost",
-      icon: "https://animevost.org/favicon.ico",
-    });
-  } else {
-    console.error("Animevost Plugin: Lampa.Online недоступен");
+      // Проверяем и добавляем в список источников
+      if (Lampa.Online && Lampa.Online.add) {
+        Lampa.Online.add({
+          id: "animevost",
+          title: "Animevost",
+          icon: "https://animevost.org/favicon.ico",
+        });
+        console.log("Animevost Plugin: Источник добавлен через Lampa.Online");
+      } else {
+        console.log(
+          "Animevost Plugin: Lampa.Online недоступен, источник добавлен только как компонент"
+        );
+      }
+    } else {
+      console.error("Animevost Plugin: Lampa.Component недоступен");
+    }
   }
 
-  console.log("Animevost Plugin: Инициализация завершена");
+  // Выполняем регистрацию с задержкой, чтобы дождаться инициализации Lampa
+  setTimeout(function () {
+    registerAnimevost();
+    console.log("Animevost Plugin: Инициализация завершена с задержкой");
+  }, 1000); // Задержка 1 секунда
 })();
