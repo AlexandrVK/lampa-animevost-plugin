@@ -112,7 +112,7 @@
     },
   };
 
-  // Функция для регистрации источника
+  // Функция регистрации источника
   function registerAnimevost() {
     console.log("Animevost Plugin: Регистрация компонента");
     if (
@@ -128,7 +128,6 @@
       });
       console.log("Animevost Plugin: Компонент зарегистрирован");
 
-      // Проверяем и добавляем в список источников
       if (Lampa.Online && Lampa.Online.add) {
         Lampa.Online.add({
           id: "animevost",
@@ -137,18 +136,26 @@
         });
         console.log("Animevost Plugin: Источник добавлен через Lampa.Online");
       } else {
-        console.log(
-          "Animevost Plugin: Lampa.Online недоступен, источник добавлен только как компонент"
-        );
+        console.log("Animevost Plugin: Lampa.Online недоступен");
       }
     } else {
       console.error("Animevost Plugin: Lampa.Component недоступен");
     }
+    console.log("Animevost Plugin: Инициализация завершена");
   }
 
-  // Выполняем регистрацию с задержкой, чтобы дождаться инициализации Lampa
-  setTimeout(function () {
-    registerAnimevost();
-    console.log("Animevost Plugin: Инициализация завершена с задержкой");
-  }, 1000); // Задержка 1 секунда
+  // Используем слушатель события 'app' для регистрации после полной загрузки
+  if (typeof Lampa !== "undefined" && Lampa.Listener) {
+    console.log("Animevost Plugin: Подписка на событие app");
+    Lampa.Listener.follow("app", function (e) {
+      console.log(
+        "Animevost Plugin: Событие app сработало, состояние:",
+        e.type
+      );
+      registerAnimevost();
+    });
+  } else {
+    console.log("Animevost Plugin: Lampa.Listener недоступен, прямой вызов");
+    registerAnimevost(); // Прямой вызов как запасной вариант
+  }
 })();
