@@ -128,6 +128,28 @@
       });
       console.log("Animevost Plugin: Компонент зарегистрирован");
 
+      // Пробуем добавить через Lampa.Storage как альтернативу
+      if (Lampa.Storage && Lampa.Storage.set) {
+        Lampa.Storage.set("LAMPA_SOURCE_animevost", {
+          id: "animevost",
+          title: "Animevost",
+          icon: "https://animevost.org/favicon.ico",
+          action: function () {
+            console.log("Animevost Plugin: Открытие каталога");
+            Lampa.Activity.push({
+              url: "",
+              title: "Animevost - Аниме",
+              component: "online_animevost",
+              source: "animevost",
+            });
+          },
+        });
+        console.log("Animevost Plugin: Источник добавлен через Lampa.Storage");
+      } else {
+        console.log("Animevost Plugin: Lampa.Storage недоступен");
+      }
+
+      // Проверяем Lampa.Online как запасной вариант
       if (Lampa.Online && Lampa.Online.add) {
         Lampa.Online.add({
           id: "animevost",
@@ -144,18 +166,17 @@
     console.log("Animevost Plugin: Инициализация завершена");
   }
 
-  // Используем слушатель события 'app' для регистрации после полной загрузки
+  // Подписываемся на событие 'app' и регистрируем только на 'ready'
   if (typeof Lampa !== "undefined" && Lampa.Listener) {
     console.log("Animevost Plugin: Подписка на событие app");
     Lampa.Listener.follow("app", function (e) {
-      console.log(
-        "Animevost Plugin: Событие app сработало, состояние:",
-        e.type
-      );
-      registerAnimevost();
+      if (e.type === "ready") {
+        console.log("Animevost Plugin: Событие app ready сработало");
+        registerAnimevost();
+      }
     });
   } else {
     console.log("Animevost Plugin: Lampa.Listener недоступен, прямой вызов");
-    registerAnimevost(); // Прямой вызов как запасной вариант
+    registerAnimevost();
   }
 })();
