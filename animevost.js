@@ -3,85 +3,136 @@
 
   console.log("Animevost Plugin: Начало загрузки");
 
-  let plugin = {
-    name: "Animevost Plugin",
-    version: "1.0.0",
-    description: "Тестовый плагин для Animevost",
-    icon: "https://animevost.org/favicon.ico",
-  };
+  // Определяем объект плагина
+  window.animevost_plugin = {
+    baseUrl: "https://animevost.org",
 
-  let Animevost = {
-    init: function () {
-      console.log("Animevost Plugin: Инициализация начата");
-      try {
-        if (typeof Lampa === "undefined") {
-          console.error("Animevost Plugin: Lampa API недоступен");
-          return;
-        }
-        if (typeof Lampa.Sources === "undefined" || !Lampa.Sources.add) {
-          console.error("Animevost Plugin: Lampa.Sources.add недоступен");
-          return;
-        }
-
-        Lampa.Sources.add({
-          id: "animevost",
-          title: "Animevost",
-          icon: plugin.icon,
-          action: function () {
-            console.log("Animevost Plugin: Открытие тестового каталога");
-            Lampa.Activity.push({
-              url: "",
-              title: "Animevost - Тест",
-              component: "main",
-              page: 1,
-              source: "animevost",
-            });
-          },
-        });
-        console.log("Animevost Plugin: Источник успешно добавлен");
-      } catch (e) {
-        console.error("Animevost Plugin: Ошибка в init:", e.message);
-      }
-    },
-
+    // Метод получения каталога
     get: function (params, oncomplite, onerror) {
-      console.log("Animevost Plugin: Вызов get");
-      try {
-        oncomplite({
-          list: [
-            { title: "Тестовое аниме", url: "https://animevost.org", img: "" },
-          ],
-          next: "",
+      console.log("Animevost Plugin: Запрос каталога, страница:", params.page);
+      var page = params.page || 1;
+      var url = this.baseUrl + "/?page=" + page;
+
+      Lampa.Network.get(
+        url,
+        { headers: { "User-Agent": "Mozilla/5.0" } },
+        function (data) {
+          var videos = window.animevost_plugin.parseCatalog(data);
+          oncomplite(videos);
+        },
+        function (error) {
+          console.error("Animevost Plugin: Ошибка сети:", error);
+          onerror(error || "Ошибка загрузки каталога");
+        }
+      );
+    },
+
+    // Парсинг каталога
+    parseCatalog: function (html) {
+      console.log("Animevost Plugin: Парсинг каталога");
+      var result = { list: [], next: "" };
+      var parser = new DOMParser();
+      var doc = parser.parseFromString(html || "", "text/html");
+      var items = doc.querySelectorAll(".shortstory") || [];
+
+      items.forEach(function (item) {
+        var titleElement = item.querySelector("h2 a");
+        var title = titleElement
+          ? titleElement.textContent.trim()
+          : "Без названия";
+        var link = titleElement ? titleElement.href : "";
+        var poster = item.querySelector(".short_img img")
+          ? item.querySelector(".short_img img").src
+          : "";
+
+        result.list.push({
+          title: title,
+          url: link,
+          img: poster,
+          source: "animevost",
         });
-      } catch (e) {
-        console.error("Animevost Plugin: Ошибка в get:", e.message);
-        onerror("Ошибка тестового каталога");
-      }
+      });
+
+      result.next = doc.querySelector(".page_nav .next a")
+        ? doc.querySelector(".page_nav .next a").href
+        : "";
+      console.log(
+        "Animevost Plugin: Каталог спарсен, элементов:",
+        result.list.length
+      );
+      return result;
+    },
+
+    // Получение потоков
+    stream: function (params, oncomplite, onerror) {
+      console.log("Animevost Plugin: Запрос видео для:", params.url);
+      var url = params.url || "";
+
+      Lampa.Network.get(
+        url,
+        { headers: { "User-Agent": "Mozilla/5.0" } },
+        function (data) {
+          var streams = window.animevost_plugin.extractVideoLinks(data);
+          if (streams.length > 0) {
+            var quality = {};
+            streams.forEach(function (stream, index) {
+              quality["Серия " + (index + 1)] = stream;
+            });
+            oncomplite({ url: streams[0], quality: quality });
+          } else {
+            onerror("Видео не найдено");
+          }
+        },
+        function (error) {
+          console.error("Animevost Plugin: Ошибка сети в stream:", error);
+          onerror(error || "Ошибка загрузки видео");
+        }
+      );
+    },
+
+    // Извлечение ссылок на видео
+    extractVideoLinks: function (html) {
+      var streams = [];
+      var parser = new DOMParser();
+      var doc = parser.parseFromString(html || "", "text/html");
+      var scripts = doc.querySelectorAll("script") || [];
+
+      scripts.forEach(function (script) {
+        var content = script.textContent || "";
+        var match = content.match(/file:\s*["'](.+?\.(mp4|m3u8))["']/i);
+        if (match) streams.push(match[1]);
+
+        var playlistMatch = content.match(/file:\s*\[(.+?)\]/i);
+        if (playlistMatch) {
+          var files = playlistMatch[1].split(",");
+          files.forEach(function (file) {
+            var cleanFile = file.replace(/["']/g, "").trim();
+            if (cleanFile.match(/\.(mp4|m3u8)$/)) streams.push(cleanFile);
+          });
+        }
+      });
+      console.log("Animevost Plugin: Найдено потоков:", streams.length);
+      return streams;
     },
   };
 
-  // Функция для ожидания загрузки Lampa API
-  function waitForLampa(callback) {
-    if (typeof Lampa !== "undefined" && typeof Lampa.Plugin !== "undefined") {
-      console.log("Animevost Plugin: Lampa API готов");
-      callback();
-    } else {
-      console.log("Animevost Plugin: Ожидание Lampa API...");
-      setTimeout(() => waitForLampa(callback), 500); // Проверяем каждые 500 мс
-    }
-  }
+  // Регистрация источника
+  console.log("Animevost Plugin: Добавление источника");
+  Lampa.Sources.add({
+    id: "animevost",
+    title: "Animevost",
+    icon: "https://animevost.org/favicon.ico",
+    action: function () {
+      console.log("Animevost Plugin: Открытие каталога");
+      Lampa.Activity.push({
+        url: "",
+        title: "Animevost - Аниме",
+        component: "main",
+        page: 1,
+        source: "animevost",
+      });
+    },
+  });
 
-  // Попытка регистрации с ожиданием
-  try {
-    console.log("Animevost Plugin: Попытка регистрации");
-    waitForLampa(function () {
-      Lampa.Plugin.register("animevost", Animevost);
-      Animevost.init();
-    });
-  } catch (e) {
-    console.error("Animevost Plugin: Ошибка при регистрации:", e.message);
-    // Альтернативный запуск без Lampa.Plugin.register
-    console.log("Animevost Plugin: Пробуем прямую инициализацию");
-    Animevost.init();
-  }
+  console.log("Animevost Plugin: Инициализация завершена");
 })();
