@@ -146,16 +146,25 @@
         });
         console.log("Animevost Plugin: Источник добавлен через Lampa.Storage");
 
-        // Обновляем интерфейс
-        if (Lampa.Listener && Lampa.Listener.send) {
+        // Пробуем обновить список источников
+        if (Lampa.Sources && Lampa.Sources.update) {
+          Lampa.Sources.update();
+          console.log(
+            "Animevost Plugin: Список источников обновлен через Lampa.Sources.update"
+          );
+        } else if (Lampa.Listener && Lampa.Listener.send) {
           Lampa.Listener.send("sources_update");
           console.log("Animevost Plugin: Отправлено событие sources_update");
+        } else {
+          console.log(
+            "Animevost Plugin: Не удалось обновить список источников"
+          );
         }
       } else {
         console.log("Animevost Plugin: Lampa.Storage недоступен");
       }
 
-      // Пробуем через Lampa.Settings или Lampa.Params
+      // Пробуем через Lampa.Params или Lampa.Settings
       if (Lampa.Params && Lampa.Params.option) {
         Lampa.Params.option("source", {
           id: "animevost",
