@@ -66,7 +66,7 @@
               title: item.title || "Без названия",
               url: item.id ? `?id=${item.id}` : "", // URL для запроса деталей
               img: item.urlImagePreview || "",
-              source: "animevost_final", // Уникальный ID
+              source: "animevost_final_win", // Уникальный ID для Windows
             }));
             oncomplite({ list: videos, next: "" });
           },
@@ -96,7 +96,7 @@
                     title: title,
                     url: link,
                     img: poster,
-                    source: "animevost_final", // Уникальный ID
+                    source: "animevost_final_win", // Уникальный ID для Windows
                   });
                 });
                 oncomplite({ list: videos, next: "" });
@@ -186,12 +186,12 @@
       },
     };
 
-    // Регистрация компонента, как в online_mod.js
+    // Регистрация компонента, как в online_mod.js (без StorageWorker)
     if (Lampa.Component && Lampa.Component.add) {
       console.log("Animevost Plugin: Регистрация компонента");
       Lampa.Component.add("online_animevost", {
         name: "Animevost",
-        source: "animevost_final", // Уникальный ID
+        source: "animevost_final_win", // Уникальный ID для Windows
         get: window.animevost_plugin.get,
         stream: window.animevost_plugin.stream,
       });
@@ -204,7 +204,7 @@
     if (Lampa.Sources && Lampa.Sources.add) {
       console.log("Animevost Plugin: Добавление источника через Lampa.Sources");
       Lampa.Sources.add({
-        id: "animevost_final", // Уникальный ID
+        id: "animevost_final_win", // Уникальный ID для Windows
         title: "Animevost",
         icon: "https://animevost.org/favicon.ico",
         action: function () {
@@ -213,64 +213,36 @@
             url: "",
             title: "Animevost - Аниме",
             component: "online_animevost",
-            source: "animevost_final", // Уникальный ID
+            source: "animevost_final_win", // Уникальный ID для Windows
           });
         },
       });
       console.log("Animevost Plugin: Источник добавлен через Lampa.Sources");
     } else {
-      console.log(
-        "Animevost Plugin: Lampa.Sources недоступен, пробуем StorageWorker"
-      );
+      console.log("Animevost Plugin: Lampa.Sources недоступен");
 
-      // Альтернатива через StorageWorker с уникальным ключом
-      if (Lampa.Storage && Lampa.Storage.set) {
-        console.log(
-          "Animevost Plugin: Добавление источника через StorageWorker"
-        );
-        Lampa.Storage.set("online_choice_animevost_final", {
-          // Уникальный ключ
-          id: "animevost_final",
-          title: "Animevost",
-          icon: "https://animevost.org/favicon.ico",
-          action: function () {
-            console.log("Animevost Plugin: Открытие каталога");
-            Lampa.Activity.push({
-              url: "",
-              title: "Animevost - Аниме",
-              component: "online_animevost",
-              source: "animevost_final",
-            });
-          },
-        });
-
-        // Повторное отправление событий для обновления с увеличенной задержкой
-        if (Lampa.Listener && Lampa.Listener.send) {
+      // Дополнительное обновление интерфейса без StorageWorker
+      if (Lampa.Listener && Lampa.Listener.send) {
+        Lampa.Listener.send("sources_update");
+        console.log("Animevost Plugin: Отправлено событие sources_update (1)");
+        setTimeout(() => {
           Lampa.Listener.send("sources_update");
           console.log(
-            "Animevost Plugin: Отправлено событие sources_update (1)"
+            "Animevost Plugin: Отправлено событие sources_update (2)"
           );
-          setTimeout(() => {
-            Lampa.Listener.send("sources_update");
-            console.log(
-              "Animevost Plugin: Отправлено событие sources_update (2)"
-            );
-          }, 1000);
-          setTimeout(() => {
-            Lampa.Listener.send("sources_update");
-            console.log(
-              "Animevost Plugin: Отправлено событие sources_update (3)"
-            );
-          }, 2000);
-        }
-        if (Lampa.Sources && Lampa.Sources.update) {
-          Lampa.Sources.update();
+        }, 1000);
+        setTimeout(() => {
+          Lampa.Listener.send("sources_update");
           console.log(
-            "Animevost Plugin: Список источников обновлен через Lampa.Sources.update"
+            "Animevost Plugin: Отправлено событие sources_update (3)"
           );
-        }
-      } else {
-        console.log("Animevost Plugin: Lampa.Storage недоступен");
+        }, 2000);
+      }
+      if (Lampa.Sources && Lampa.Sources.update) {
+        Lampa.Sources.update();
+        console.log(
+          "Animevost Plugin: Список источников обновлен через Lampa.Sources.update"
+        );
       }
     }
 
