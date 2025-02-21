@@ -47,6 +47,15 @@
       });
     },
 
+    // Вспомогательная функция для получения списка аниме с пагинацией
+    sliceArray: function (array, size) {
+      let subarray = [];
+      for (let i = 0; i < Math.ceil(array.length / size); i++) {
+        subarray[i] = array.slice(i * size, i * size + size);
+      }
+      return subarray;
+    },
+
     // Метод получения каталога
     get: function (params, oncomplite, onerror) {
       console.log("Animevost Plugin: Запрос каталога через API AnimeVost");
