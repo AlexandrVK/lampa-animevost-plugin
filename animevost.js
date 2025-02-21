@@ -66,7 +66,7 @@
               title: item.title || "Без названия",
               url: item.id ? `?id=${item.id}` : "", // URL для запроса деталей
               img: item.urlImagePreview || "",
-              source: "animevost_unique", // Уникальный ID
+              source: "animevost_final", // Уникальный ID
             }));
             oncomplite({ list: videos, next: "" });
           },
@@ -96,7 +96,7 @@
                     title: title,
                     url: link,
                     img: poster,
-                    source: "animevost_unique", // Уникальный ID
+                    source: "animevost_final", // Уникальный ID
                   });
                 });
                 oncomplite({ list: videos, next: "" });
@@ -191,7 +191,7 @@
       console.log("Animevost Plugin: Регистрация компонента");
       Lampa.Component.add("online_animevost", {
         name: "Animevost",
-        source: "animevost_unique", // Уникальный ID
+        source: "animevost_final", // Уникальный ID
         get: window.animevost_plugin.get,
         stream: window.animevost_plugin.stream,
       });
@@ -204,7 +204,7 @@
     if (Lampa.Sources && Lampa.Sources.add) {
       console.log("Animevost Plugin: Добавление источника через Lampa.Sources");
       Lampa.Sources.add({
-        id: "animevost_unique", // Уникальный ID
+        id: "animevost_final", // Уникальный ID
         title: "Animevost",
         icon: "https://animevost.org/favicon.ico",
         action: function () {
@@ -213,7 +213,7 @@
             url: "",
             title: "Animevost - Аниме",
             component: "online_animevost",
-            source: "animevost_unique", // Уникальный ID
+            source: "animevost_final", // Уникальный ID
           });
         },
       });
@@ -228,9 +228,9 @@
         console.log(
           "Animevost Plugin: Добавление источника через StorageWorker"
         );
-        Lampa.Storage.set("online_choice_animevost_unique", {
+        Lampa.Storage.set("online_choice_animevost_final", {
           // Уникальный ключ
-          id: "animevost_unique",
+          id: "animevost_final",
           title: "Animevost",
           icon: "https://animevost.org/favicon.ico",
           action: function () {
@@ -239,24 +239,29 @@
               url: "",
               title: "Animevost - Аниме",
               component: "online_animevost",
-              source: "animevost_unique",
+              source: "animevost_final",
             });
           },
         });
 
-        // Повторное отправление событий для обновления
+        // Повторное отправление событий для обновления с увеличенной задержкой
         if (Lampa.Listener && Lampa.Listener.send) {
           Lampa.Listener.send("sources_update");
           console.log(
             "Animevost Plugin: Отправлено событие sources_update (1)"
           );
-          // Повторный вызов для гарантии
           setTimeout(() => {
             Lampa.Listener.send("sources_update");
             console.log(
               "Animevost Plugin: Отправлено событие sources_update (2)"
             );
           }, 1000);
+          setTimeout(() => {
+            Lampa.Listener.send("sources_update");
+            console.log(
+              "Animevost Plugin: Отправлено событие sources_update (3)"
+            );
+          }, 2000);
         }
         if (Lampa.Sources && Lampa.Sources.update) {
           Lampa.Sources.update();
