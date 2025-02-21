@@ -210,6 +210,13 @@
           });
         },
       });
+      setTimeout(() => {
+        Lampa.Storage.set("sources", []);
+        Lampa.Sources.update();
+        Lampa.Listener.send("sources_update");
+        console.log("Animevost Plugin: Принудительное обновление источников");
+      }, 1000);
+
       // Обновляем список источников
       if (Lampa.Sources.update) {
         Lampa.Sources.update();
