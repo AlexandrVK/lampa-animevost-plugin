@@ -9,12 +9,12 @@
 
       get: function (params, oncomplite, onerror) {
         console.log("Animevost Plugin: Запрос каталога через API AnimeVost");
-        // Запрос API Animevost и обработка данных
+        // Здесь должна быть логика запроса и обработки данных каталога
       },
 
       stream: function (params, oncomplite, onerror) {
         console.log("Animevost Plugin: Запрос видео для:", params.url);
-        // Запрос плейлиста и обработка потока
+        // Здесь должна быть логика запроса плейлиста и получения потока
       },
     };
 
@@ -27,34 +27,42 @@
         get: window.animevost_plugin.get,
         stream: window.animevost_plugin.stream,
       });
+    } else {
+      console.error("Animevost Plugin: Lampa.Component недоступен");
     }
 
-    // Надежное добавление источника через Lampa.Listener
-    Lampa.Listener.follow("sources", function (e) {
-      if (e.type === "start" && e.object && e.object.sources) {
-        console.log(
-          "Animevost Plugin: Добавление источника через Lampa.Listener"
-        );
-        e.object.sources.push({
-          id: "animevost_final_win",
-          title: "Animevost",
-          icon: "https://animevost.org/favicon.ico",
-          action: function () {
-            console.log("Animevost Plugin: Открытие каталога Animevost");
-            Lampa.Activity.push({
-              url: "",
-              title: "Animevost - Аниме",
-              component: "online_animevost",
-              source: "animevost_final_win",
-            });
-          },
-        });
-      } else {
-        console.error(
-          "Animevost Plugin: Ошибка добавления источника, объект источников не найден."
-        );
-      }
-    });
+    // Добавление источника через Lampa.Listener (аналог prestige.js)
+    if (Lampa.Listener && Lampa.Listener.send) {
+      Lampa.Listener.follow("sources", function (e) {
+        if (e.type === "start" && e.object && e.object.sources) {
+          console.log(
+            "Animevost Plugin: Добавление источника через Lampa.Listener"
+          );
+          e.object.sources.push({
+            id: "animevost_final_win",
+            title: "Animevost",
+            icon: "https://animevost.org/favicon.ico",
+            action: function () {
+              console.log("Animevost Plugin: Открытие каталога Animevost");
+              Lampa.Activity.push({
+                url: "",
+                title: "Animevost - Аниме",
+                component: "online_animevost",
+                source: "animevost_final_win",
+              });
+            },
+          });
+          // После добавления источника отправляем событие обновления
+          Lampa.Listener.send("sources_update");
+        } else {
+          console.error(
+            "Animevost Plugin: Ошибка добавления источника, объект источников не найден."
+          );
+        }
+      });
+    } else {
+      console.error("Animevost Plugin: Lampa.Listener недоступен");
+    }
 
     console.log("Animevost Plugin: Инициализация завершена");
   }
