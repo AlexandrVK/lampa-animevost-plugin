@@ -38,22 +38,32 @@
           console.log(
             "Animevost Plugin: Добавление источника через Lampa.Listener"
           );
-          e.object.sources.push({
-            id: "animevost_final_win",
-            title: "Animevost",
-            icon: "https://animevost.org/favicon.ico",
-            action: function () {
-              console.log("Animevost Plugin: Открытие каталога Animevost");
-              Lampa.Activity.push({
-                url: "",
-                title: "Animevost - Аниме",
-                component: "online_animevost",
-                source: "animevost_final_win",
-              });
-            },
-          });
-          // После добавления источника отправляем событие обновления
-          Lampa.Listener.send("sources_update");
+
+          // Проверка на существование источника
+          const existingSource = e.object.sources.find(
+            (source) => source.id === "animevost_final_win"
+          );
+          if (!existingSource) {
+            e.object.sources.push({
+              id: "animevost_final_win",
+              title: "Animevost",
+              icon: "https://animevost.org/favicon.ico",
+              action: function () {
+                console.log("Animevost Plugin: Открытие каталога Animevost");
+                Lampa.Activity.push({
+                  url: "",
+                  title: "Animevost - Аниме",
+                  component: "online_animevost",
+                  source: "animevost_final_win",
+                });
+              },
+            });
+            // После добавления источника отправляем событие обновления
+            Lampa.Listener.send("sources_update");
+            console.log("Animevost Plugin: Источник успешно добавлен");
+          } else {
+            console.log("Animevost Plugin: Источник уже существует");
+          }
         } else {
           console.error(
             "Animevost Plugin: Ошибка добавления источника, объект источников не найден."
